@@ -46,4 +46,4 @@ mv $temp_file $postinstall_file
 
 # Re-package file
 new_filename=`echo $1 | cut -f1 -d'.'`
-pkgutil --flatten $pkg_temp $new_filename"Licensed.pkg"
+pkgutil --flatten $pkg_temp $new_filename"WithID.pkg"
