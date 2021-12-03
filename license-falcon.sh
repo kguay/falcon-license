@@ -14,35 +14,21 @@ if ! [ -x "$(command -v pkgutil)" ]; then
 fi
 
 # Delete temporary pkg file if exists
-temp_pkg="/tmp/FalconSensor.unpkg"
-if [ -d "$temp_pkg" ]; then
-  rm -r $temp_pkg
-fi
-
-# Store the postinstall file path for reference
 pkg_temp="/tmp/FalconSensor.unpkg"
-postinstall_file="/tmp/FalconSensor.unpkg/sensor.pkg/Scripts/postinstall"
-temp_file="/tmp/postinstall"
+if [ -d "$pkg_temp" ]; then
+  rm -rf $pkg_temp
+fi
 
 # Unpackage the pkg (installer)
 pkgutil --expand $1 $pkg_temp
 
-# Delete loadSensor line in postinstall and store in temp file
-sed 's/^loadSensor//g' $postinstall_file > $temp_file
+postinstall_file="$pkg_temp/sensor-kext.pkg/Scripts/postinstall"
+sed -i '' 's|VALUE=""|VALUE="'"$2"'"|g' $postinstall_file
+sed -i '' 's|^loadSensor|function licenseSensor()\n{\n    "$CS_BIN_PATH/falconctl" license "'"$2"'"\n}\n\nlicenseSensor\nloadSensor|g' $postinstall_file
 
-# Append license information to temp file
-cat <<EOT >> $temp_file
-function licenseSensor()
-{
-    /Library/CS/falconctl license $2
-}
-
-licenseSensor
-loadSensor
-EOT
-
-# Move temp file to postinstall file
-mv $temp_file $postinstall_file
+postinstall_file="$pkg_temp/sensor-sysx.pkg/Scripts/postinstall"
+sed -i '' 's|VALUE=""|VALUE="'"$2"'"|g' $postinstall_file
+sed -i '' 's|^loadSensor|function licenseSensor()\n{\n    "$CS_BIN_PATH/falconctl" license "'"$2"'"\n}\n\nlicenseSensor\nloadSensor|g' $postinstall_file
 
 # Re-package file
 new_filename=`echo $1 | cut -f1 -d'.'`
